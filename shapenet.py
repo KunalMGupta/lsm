@@ -14,7 +14,7 @@ def get_split(split_js='data/splits.json'):
     dir_path = osp.dirname(osp.realpath(__file__))
     with open(osp.join(dir_path, split_js), 'r') as f:
         js = json.load(f)
-
+    print(js)
     return js
 
 
@@ -48,7 +48,8 @@ class ShapeNet(object):
             'vol': self.get_vol,
             'shape_id': self.get_sid,
             'model_id': self.get_mid,
-            'view_idx': self.get_view_idx
+            'view_idx': self.get_view_idx,
+            'voxel': self.get_voxel
         }
         self.all_items = self.load_func.keys()
 
@@ -108,13 +109,31 @@ class ShapeNet(object):
             f = osp.join(self.im_dir, sid, mid, 'depth_{:d}.png'.format(ix))
             depths.append(read_depth(f))
         return np.stack(depths, axis=0)
+    
+    def get_voxel(self, sid, mid, idx):
+        rand_idx = idx
+        voxels = []
+        for ix in rand_idx:
+            f = '/datasets/home/home-03/76/776/k5gupta/lsm/data/shapenet_release_full/test_voxel.npy'
+            voxels.append(np.load(f))
+        return np.stack(voxels, axis=0)
 
     def get_im(self, sid, mid, idx):
         rand_idx = idx
         ims = []
+#         print(rand_idx)
         for ix in rand_idx:
             f = osp.join(self.im_dir, sid, mid, 'render_{:d}.png'.format(ix))
-            ims.append(read_im(f))
+            img = read_im(f)
+#             f_mean = '/datasets/home/76/776/k5gupta/cmr/uv.png'
+#             mean = read_im(f_mean)
+#             img = np.dstack((img,mean))
+            ims.append(img)
+#         mid2 = '5d756a52f6f361abf500cc506a763c18'
+#         f_mean = '/datasets/home/76/776/k5gupta/cmr/uv.png'
+#         mean = read_im(f_mean)
+#         img = np.dstack((img,mean))
+#         ims.append(mean)
         return np.stack(ims, axis=0)
 
     def get_vol(self, sid, mid, idx=None, tsdf=False):

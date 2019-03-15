@@ -58,7 +58,7 @@ def train(net):
     dset = ShapeNet(im_dir=im_dir, split_file=args.split_file, rng_seed=0)
     mids = dset.get_smids('train')
     logger.info('Training with %d models', len(mids))
-    items = ['im', 'K', 'R', 'depth']
+    items = ['im', 'K', 'R', 'depth','voxel']
     dset.init_queue(
         mids,
         net.im_batch,
@@ -76,6 +76,7 @@ def train(net):
         if args.ckpt is not None:
             logger.info('Restoring from %s', args.ckpt)
             saver.restore(sess, args.ckpt)
+            logger.info('Restored from %s', args.ckpt)
         else:
             sess.run(init_op)
         try:
@@ -88,7 +89,8 @@ def train(net):
                     net.ims: batch_data['im'],
                     net.K: batch_data['K'],
                     net.Rcam: batch_data['R'],
-                    net.gt_depth: batch_data['depth']
+                    net.gt_depth: batch_data['depth'],
+                    net.mean: batch_data['voxel']
                 }
                 if args.run_trace and (iters % args.sum_iters == 0 or
                                        iters == 1 or iters == args.niters):
@@ -111,8 +113,7 @@ def train(net):
 
                 sum_writer.add_summary(merged_scalars_, step_)
                 if iters % args.sum_iters == 0 or iters == 1 or iters == args.niters:
-                    image_sum_, step_ = sess.run(
-                        [merged_ims, global_step], feed_dict=feed_dict)
+                    image_sum_, step_ = sess.run([merged_ims, global_step], feed_dict=feed_dict)
                     #sum_writer.add_summary(image_sum_, step_)
 
                 if iters % args.ckpt_iters == 0 or iters == args.niters:
@@ -183,6 +184,8 @@ if __name__ == '__main__':
         log_dir = osp.join(args.logdir, key, 'train')
     else:
         log_dir = args.logdir
+        
+    print("logdir", log_dir)
 
     mvnet = MVNet(
         vmin=-0.5,

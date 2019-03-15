@@ -170,31 +170,37 @@ def model_dlsm(net,
                im_skip=True,
                proj_last=False):
     '''Depth LSTM model '''
-
+   
     with tf.variable_scope('MVNet'):
         # Setup placeholders for im, depth, extrinsic and intrinsic matrices
         net.ims = tf.placeholder(tf.float32, net.im_tensor_shape, name='ims')
         net.K = tf.placeholder(tf.float32, net.K_tensor_shape, name='K')
         net.Rcam = tf.placeholder(tf.float32, net.R_tensor_shape, name='R')
-
+        net.mean = tf.placeholder(tf.float32, net.mean_tensor_shape, name='voxel')
+        
         # Compute image features
         net.im_feats = im_net(net, collapse_dims(net.ims))
 
         # Unproject feature grid
         net.cost_grid = proj_splat(net, net.im_feats, net.K, net.Rcam)
-
+        print("Shape of the grid is:", tf_static_shape(net.cost_grid))
         # Combine grids with LSTM/GRU
         net.pool_grid, _ = rnn(net.cost_grid)
+        print("Shape of the rnn is:", net.pool_grid.get_shape().as_list())
 
         # Grid network
         net.pool_grid = collapse_dims(net.pool_grid)
         net.pred_vox = grid_net(net, net.pool_grid)
         net.proj_vox = uncollapse_dims(net.grid_net['deconv3'], net.batch_size,
                                        net.im_batch)
-
+        
+        print("Shape of the proj_vox is:", net.proj_vox.get_shape().as_list())
         # Projection
         proj_vox_in = (net.proj_vox
                        if not proj_last else net.proj_vox[:, -1:, ...])
+        print("Shape of the proj_vox_in is:", proj_vox_in.get_shape().as_list())
+        print("PRINTING VOXEL SHAPE!!!!", net.mean.get_shape().as_list())
+        print(tf.concat([proj_vox_in, net.mean], 5))
         net.ray_slices, z_samples = proj_slice(
             net,
             proj_vox_in,
@@ -202,14 +208,16 @@ def model_dlsm(net,
             net.Rcam,
             proj_size=net.im_h / proj_x,
             samples=ray_samples)
-
+        print("Shape of the ray_slices and z_samples is:", net.ray_slices.get_shape().as_list(), z_samples.get_shape().as_list())
         bs, im_bs, ks, im_sz1, im_sz2, fdim, _ = tf_static_shape(
             net.ray_slices)
         net.depth_in = tf.reshape(net.ray_slices, [
             bs * im_bs * ks, im_sz1, im_sz2, fdim * ray_samples
         ])
+        
         # Depth network
         if proj_x == 4:
+            print("Shape of the depth_in is :", net.depth_in.get_shape().as_list())
             if not sepup:
                 net.depth_out = depth_net_x4(net, net.depth_in, im_skip)
             else:
@@ -226,6 +234,7 @@ def model_dlsm(net,
 
         net.depth_out = tf.reshape(net.depth_out,
                                    [bs, im_bs, ks, net.im_h, net.im_w, 1])
+        print("Shape of the depth_out is :", net.depth_out.get_shape().as_list())
         return net
 
 

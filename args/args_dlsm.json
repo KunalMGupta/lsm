@@ -1,6 +1,6 @@
 {
     "argsjs": null, 
-    "batch_size": 2, 
+    "batch_size": 1, 
     "beta1": 0.9, 
     "ckpt": null, 
     "ckpt_iters": 5000, 

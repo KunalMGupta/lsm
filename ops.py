@@ -341,6 +341,7 @@ def proj_slice(net,
     K = K * rsz_factor
     K_shape = tf_static_shape(K)
     bs, im_bs, h, w, d, ch = tf_static_shape(grid)
+    print(bs, im_bs, h, w, d, ch)
     npix = proj_size**2
     with tf.variable_scope('ProjSlice'):
         # Setup dimensions
@@ -387,6 +388,7 @@ def proj_slice(net,
 
         with tf.name_scope('Interp'):
             sample_grid = collapse_dims(grid)
+            print(sample_grid)
             sample_locs = collapse_dims(Xw)
             lshape = tf_static_shape(sample_locs)
             vox_idx = tf.range(lshape[0])
@@ -420,6 +422,7 @@ def proj_splat(net, feats, K, Rcam):
                                   net.vsize)
             net.grid = tf.stack(
                 tf.meshgrid(grid_range, grid_range, grid_range))
+            print("Grid range shape:", grid_range)
             net.rs_grid = tf.reshape(net.grid, [3, -1])
             nV = tf_static_shape(net.rs_grid)[1]
             net.rs_grid = tf.concat([net.rs_grid, tf.ones([1, nV])], axis=0)

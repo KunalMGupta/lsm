@@ -1,5 +1,5 @@
 #!/bin/bash
-URL=http://people.eecs.berkeley.edu/~akar/lsm/models_lsm_v1_small.tar.gz
+URL=https://www.dropbox.com/s/q14sfozef6g3gcx/models_lsm_v1_small.tar
 CHECKSUM=8955572bb300a52a8b0dcf78d7e47b19
 FILE=models_lsm_v1_small.tar.gz
 
@@ -20,6 +20,6 @@ if [ -f $FILE ]; then
 fi
 
 wget $URL -O $FILE
-tar xvzf $FILE
+tar xvf $FILE
 
 echo "Done. Please run this command again to verify that checksum = $CHECKSUM."

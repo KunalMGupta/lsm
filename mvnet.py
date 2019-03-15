@@ -22,7 +22,8 @@ class MVNet(object):
         self.vsize = float(self.vmax - self.vmin) / self.nvox
         self.mode = mode
         self.norm = norm
-
+        print("Vsize :", self.vmin, self.vmax, self.nvox, self.vsize)
+#         self.im_batch = 4
     @property
     def vox_tensor_shape(self):
         return [self.batch_size, self.nvox, self.nvox, self.nvox, 1]
@@ -49,6 +50,10 @@ class MVNet(object):
     def R_tensor_shape(self):
         return [self.batch_size, self.im_batch, 3, 4]
 
+    @property
+    def mean_tensor_shape(self):
+        return [self.batch_size, self.im_batch, 32,32,32,1]
+    
     @property
     def quat_tensor_shape(self):
         return [self.batch_size, self.im_batch, 4]
